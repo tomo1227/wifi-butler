@@ -15,6 +15,12 @@ struct MonitorOverview: View {
           }
         }
         LabeledContent("通信状態", value: model.status.label)
+        Toggle("Wi-Fi が切断されたら自動で再接続", isOn: $model.autoReconnect)
+        Button("Wi-Fi に再接続", action: model.reconnect)
+          .disabled(!model.canReconnect)
+        if model.reconnectFailed {
+          Text("再接続できませんでした。macOS の Wi-Fi メニューで接続してください。")
+        }
         dateRow("最後の認証確認", date: model.lastVerified)
         dateRow("次回の確認予定", date: model.nextCheck)
         if model.status == .unidentified {
@@ -32,7 +38,7 @@ struct MonitorOverview: View {
         if let portal = model.portal, let host = portal.host() {
           LabeledContent("候補のホスト", value: host)
           Text("接続先が Wi-Fi 提供者のページであることを確認し、利用規約はご自身で確認してください。")
-          Button("選択したブラウザで開く") { Task { await model.openPortal(portal) } }
+          Button("選択したブラウザで開く", action: model.openDetectedPortal)
             .disabled(model.status == .opening)
         } else {
           Text("認証 URL が表示されない場合は、macOS の Wi-Fi ログイン画面で手動認証してください。")

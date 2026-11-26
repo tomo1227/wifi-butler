@@ -19,6 +19,10 @@ final class WiFiMonitor {
     location.requestWhenInUseAuthorization()
   }
 
+  var canReconnect: Bool {
+    location.authorizationStatus == .authorizedAlways && client.interface()?.powerOn() == true
+  }
+
   func snapshot() -> WiFiSnapshot {
     let wifi = client.interface()
     guard wifi?.powerOn() == true else { return .disconnected }

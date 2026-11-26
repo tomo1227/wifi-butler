@@ -1,6 +1,6 @@
 enum MonitorStatus: Equatable {
   case paused, disconnected, unidentified, excluded, noWiFiRoute, checking, online, unavailable
-  case unexpectedResponse, portal, opening, browserFailed, sleeping
+  case unexpectedResponse, portal, opening, browserFailed, sleeping, reconnecting
 
   var label: String {
     switch self {
@@ -17,6 +17,7 @@ enum MonitorStatus: Equatable {
     case .opening: "ブラウザで開いています"
     case .browserFailed: "選択したブラウザで開けませんでした"
     case .sleeping: "スリープ中"
+    case .reconnecting: "Wi-Fi に再接続中"
     }
   }
 }
