@@ -31,6 +31,10 @@ struct MonitorMenu: View {
       openWindow(id: "overview")
       NSApplication.shared.activate()
     }
+    Button("Wi-Fi の DNS プリセットを表示") {
+      openWindow(id: "dns-presets")
+      NSApplication.shared.activate()
+    }
     Divider()
     Button("WiFi Butler を終了") { NSApplication.shared.terminate(nil) }
       .keyboardShortcut("q")
