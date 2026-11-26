@@ -18,8 +18,7 @@ enum WiFiReconnector {
   }
 
   private static func associate(to ssid: String, force: Bool) -> Outcome {
-    guard SupportedWiFi.ssids.contains(ssid),
-      let interface = CWWiFiClient.shared().interface(), interface.powerOn()
+    guard let interface = CWWiFiClient.shared().interface(), interface.powerOn()
     else { return .failed }
     guard !Task.isCancelled, canJoin(ssid, on: interface) else { return .superseded }
     if !force, interface.ssid() == ssid { return .joined }

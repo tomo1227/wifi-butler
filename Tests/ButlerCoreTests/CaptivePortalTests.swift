@@ -21,7 +21,7 @@ final class CaptivePortalTests: XCTestCase {
     XCTAssertFalse(WiFiSnapshot.unidentified.isAllowed(by: allowed))
   }
 
-  func testNetworkMustStillMatchEvenWhenBothSSIDsAreSupported() {
+  func testNetworkMustStillMatchAcrossAnySSID() {
     let doutor = WiFiSnapshot.connected("DOUTOR_FREE_Wi-Fi")
     let saintMarc = WiFiSnapshot.connected("309cafe_Wi-Fi")
     let shinkansen = WiFiSnapshot.connected("Shinkansen_Free_Wi-Fi")
@@ -33,7 +33,7 @@ final class CaptivePortalTests: XCTestCase {
     XCTAssertFalse(SupportedWiFi.matches(saintMarc, expected: doutor))
     XCTAssertFalse(SupportedWiFi.matches(doutor, expected: saintMarc))
     XCTAssertFalse(SupportedWiFi.matches(shinkansen, expected: saintMarc))
-    XCTAssertFalse(SupportedWiFi.matches(other, expected: other))
+    XCTAssertTrue(SupportedWiFi.matches(other, expected: other))
     XCTAssertFalse(SupportedWiFi.matches(.unidentified, expected: saintMarc))
   }
 

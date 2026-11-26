@@ -46,7 +46,7 @@ struct MonitorOverview: View {
       }
 
       Section {
-        DisclosureGroup("監視対象の Wi-Fi") {
+        DisclosureGroup("よく使われる Wi-Fi") {
           ForEach(SupportedWiFi.ssids.sorted(), id: \.self) { ssid in
             Text(verbatim: ssid)
           }

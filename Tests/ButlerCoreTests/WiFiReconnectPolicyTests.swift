@@ -4,15 +4,15 @@ import XCTest
 final class WiFiReconnectPolicyTests: XCTestCase {
   private let ssid = "Shinkansen_Free_Wi-Fi"
 
-  func testManualTargetRequiresCurrentOrPreviouslyObservedSupportedWiFi() {
+  func testManualTargetIncludesAnySSID() {
     var policy = WiFiReconnectPolicy()
     XCTAssertNil(policy.manualTarget(for: .disconnected))
     XCTAssertEqual(policy.manualTarget(for: .connected(ssid)), ssid)
+    XCTAssertEqual(policy.manualTarget(for: .connected("Home")), "Home")
 
     policy.observe(.connected(ssid))
     XCTAssertEqual(policy.manualTarget(for: .disconnected), ssid)
     XCTAssertNil(policy.manualTarget(for: .unidentified))
-    XCTAssertNil(policy.manualTarget(for: .connected("Home")))
   }
 
   func testAutomaticReconnectRunsOncePerDisconnection() {
@@ -35,11 +35,11 @@ final class WiFiReconnectPolicyTests: XCTestCase {
     XCTAssertNil(policy.takeAutomaticTarget(for: .disconnected))
   }
 
-  func testSwitchingToAnUnsupportedNetworkForgetsTheOldTarget() {
+  func testSwitchingToAnyNetworkKeepsItAsTarget() {
     var policy = WiFiReconnectPolicy()
     policy.observe(.connected(ssid))
     policy.observe(.connected("Home"))
-    XCTAssertNil(policy.manualTarget(for: .disconnected))
-    XCTAssertNil(policy.takeAutomaticTarget(for: .disconnected))
+    XCTAssertEqual(policy.manualTarget(for: .disconnected), "Home")
+    XCTAssertEqual(policy.takeAutomaticTarget(for: .disconnected), "Home")
   }
 }

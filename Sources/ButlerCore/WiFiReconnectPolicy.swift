@@ -6,14 +6,14 @@ public struct WiFiReconnectPolicy: Sendable {
 
   public mutating func observe(_ snapshot: WiFiSnapshot) {
     if case .connected(let ssid) = snapshot {
-      lastSSID = SupportedWiFi.ssids.contains(ssid) ? ssid : nil
+      lastSSID = ssid
       attemptedSSID = nil
     }
   }
 
   public func manualTarget(for snapshot: WiFiSnapshot) -> String? {
     switch snapshot {
-    case .connected(let ssid): SupportedWiFi.ssids.contains(ssid) ? ssid : nil
+    case .connected(let ssid): ssid
     case .disconnected: lastSSID
     case .unidentified: nil
     }

@@ -129,7 +129,7 @@ final class MonitorModel {
   }
 
   private func isCurrentNetwork(_ expected: WiFiSnapshot) -> Bool {
-    SupportedWiFi.matches(wifi.snapshot(), expected: expected) && wifi.hasWiFiRoute
+    wifi.snapshot() == expected && wifi.hasWiFiRoute
   }
 
   private func refreshAfterPathChange() {
@@ -225,7 +225,6 @@ final class MonitorModel {
     switch current {
     case .disconnected: .disconnected
     case .unidentified: .unidentified
-    case .connected where !current.isAllowed(by: SupportedWiFi.ssids): .excluded
     case .connected: wifi.hasWiFiRoute ? nil : .noWiFiRoute
     }
   }

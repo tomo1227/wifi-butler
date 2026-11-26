@@ -13,6 +13,6 @@ public enum SupportedWiFi {
   ]
 
   public static func matches(_ current: WiFiSnapshot, expected: WiFiSnapshot) -> Bool {
-    current == expected && current.isAllowed(by: ssids)
+    current == expected
   }
 }
