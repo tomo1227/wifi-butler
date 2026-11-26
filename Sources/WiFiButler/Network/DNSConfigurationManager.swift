@@ -244,7 +244,7 @@ private enum DNSConfigurationError: LocalizedError {
     case .wifiServiceNotUnique:
       "対象の Wi-Fi サービスを一意に特定できません。設定は変更していません。"
     case .dnsProtocolUnavailable:
-      "Wi-Fi の DNS 設定を取得できませんでした。"
+      "DNS 設定を取得できませんでした。"
     case .configurationFailed:
       "DNS 設定を変更できませんでした。"
     case .commitFailed:
