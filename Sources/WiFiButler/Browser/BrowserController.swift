@@ -4,8 +4,13 @@ import AppKit
 struct BrowserController {
   func open(_ url: URL, in browser: Browser) async -> NSRunningApplication? {
     let workspace = NSWorkspace.shared
-    guard let app = workspace.urlForApplication(withBundleIdentifier: browser.bundleIdentifier)
-    else { return nil }
+    let app: URL?
+    if let bundleIdentifier = browser.bundleIdentifier {
+      app = workspace.urlForApplication(withBundleIdentifier: bundleIdentifier)
+    } else {
+      app = workspace.urlForApplication(toOpen: url)
+    }
+    guard let app else { return nil }
     let configuration = NSWorkspace.OpenConfiguration()
     configuration.createsNewApplicationInstance = false
     do {

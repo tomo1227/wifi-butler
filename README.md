@@ -1,6 +1,6 @@
 # WiFi Butler
 
-飲食店、列車、駅、空港のフリー Wi-Fi を対象とする、macOS メニューバーアプリです。現バージョンは**手動認証を補助する PoC** です。通信障害と Captive Portal の候補を区別し、確認した URL を Dia または Safari で開けます。利用規約への同意や認証ボタンの操作はアプリから行いません。
+飲食店、列車、駅、空港のフリー Wi-Fi を対象とする、macOS メニューバーアプリです。現バージョンは**手動認証を補助する PoC** です。通信障害と Captive Portal の候補を区別し、確認した URL を 選んだブラウザで開けます。利用規約への同意や認証ボタンの操作はアプリから行いません。
 
 | 監視対象 | SSID |
 | --- | --- |
@@ -34,10 +34,12 @@ make lint   # swift-format のルールを確認
 
 1. macOS で上記の監視対象 Wi-Fi に接続します。
 2. メニューバーの蝶ネクタイのアイコンから **監視を開始** を選び、SSID の読み取りに必要な位置情報の利用を許可します。位置座標は取得しません。
-3. **状況・履歴を表示** で接続状態を確認します。認証ページ候補が表示されたらホスト名を確認し、Dia または Safari で開きます。利用規約に同意できる場合のみ、ブラウザ上で手動で操作します。
+3. **状況・履歴を表示** で接続状態を確認します。認証ページ候補が表示されたらホスト名を確認し、選んだブラウザで開きます。利用規約に同意できる場合のみ、ブラウザ上で手動で操作します。
 4. 操作後、アプリは Apple の疎通確認ページへの HTTPS 通信を再確認します。URL が表示されない場合は、macOS の Wi-Fi ログイン画面を使ってください。
 
 蝶ネクタイの右の印は、インターネット接続済みならチェック、認証ページ候補・想定外の応答・ブラウザ起動失敗なら感嘆符、それ以外は横線です。
+
+ブラウザは Dia、Safari、Google Chrome、Firefox、Microsoft Edge、Brave、Arc、Opera、Vivaldi から選べます。ほかのブラウザも、macOS でデフォルトの Web ブラウザに設定して **「macOS のデフォルト」** を選べば使えます。未インストールのブラウザを指定して開けなかった場合は、別のブラウザを選んで再試行してください。
 
 監視は初期状態で停止しています。監視中は通常 30 秒おきに確認し、スリープ中は停止します。履歴はローカルに日時とイベント種類だけを最大 7 日間・300 件保存します。認証 URL、SSID、認証情報、Cookie は履歴に保存しません。
 
@@ -47,7 +49,7 @@ make lint   # swift-format のルールを確認
 | --- | --- |
 | SSID・ネットワーク経路 | [CoreWLAN](https://developer.apple.com/documentation/corewlan) の `CWWiFiClient` で SSID を取得し、`NWPathMonitor` で Wi-Fi の経路を確認します。SSID が不明・対象外の場合は HTTP/HTTPS の疎通確認を行いません。`URLSession` はシステムの経路を使うため、VPN・プロキシなどの影響は受けます。 |
 | Captive Portal | `captive.apple.com` の既知の HTTPS 応答を疎通判定に使用します。HTTPS だけで判定できない場合のみ HTTP を試し、リダイレクトは自動追跡しません。異なるホストへの同じリダイレクト（または `511` と `Location`）が続いた場合のみ候補を表示します。候補は提供者の真正性を保証しません。別の応答形式のポータルや、一部の通信だけを許可するネットワークは誤判定・見逃しがあり得ます。 |
-| Dia と Safari | Dia は [1.7.0 の公開ノート](https://www.diabrowser.com/changelog/mac/1-7-0) でウィンドウ・タブの参照とフォーカスを案内しています。ローカルの Dia 1.58.2 と Safari 27.2 のスクリプト辞書に JavaScript コマンドはありましたが、実行権限や実ページの動作は未検証です。現行アプリは AppleScript や JavaScript を使わず、`NSWorkspace` で既存ブラウザセッションに URL を渡します。 |
+| ブラウザ | AppleScript や JavaScript は使わず、`NSWorkspace` で選択したブラウザに URL を渡します。起動済みなら既存のインスタンスを使います。 |
 | Accessibility | 自動操作の候補実装は、アクセシビリティ権限、フォーカスされたウィンドウ、承認済みの HTTPS URL、一意かつ有効な `AXPress` 対象を要求します。実店舗の Dia/Safari における AX ツリーは未検証で、アプリからは起動しません。現行アプリの利用にアクセシビリティ権限は不要です。 |
 | 対応店舗の情報 | ドトールは[公式案内](https://www.doutor.co.jp/dcs/service/dtr-wifi.html)、サンマルクカフェは[公式の店舗情報](https://www.saint-marc-hd.com/saintmarccafe/search/)と[SSID の利用報告](https://realnet-engineering.jp/mobile/saintmarccafe/)を参照しています。どちらも実店舗でのポータル検出から認証成功までの動作は未検証です。事業者の規約やセッション制限は回避しません。 |
 | 新幹線車内 Wi-Fi | [JR東海の SSID・利用案内](https://railway.jr-central.co.jp/wireless/shinkansen_free_wifi.html)と[JR西日本の提供区間案内](https://www.jr-odekake.net/railroad/service/shinkansen-wifi.html)を参照しています。メール登録や SNS 認証は手動です。実車内でのポータル検出から認証成功までの動作は未検証です。 |
