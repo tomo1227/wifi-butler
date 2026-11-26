@@ -16,7 +16,7 @@ struct MonitorOverview: View {
         }
         LabeledContent("通信状態", value: model.status.label)
         Toggle("Wi-Fi が切断されたら自動で再接続", isOn: $model.autoReconnect)
-        Button("Wi-Fi に再接続", action: model.reconnect)
+        Button("再接続", action: model.reconnect)
           .disabled(!model.canReconnect)
         if model.reconnectFailed {
           Text("再接続できませんでした。macOS の Wi-Fi メニューで接続してください。")

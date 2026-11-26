@@ -21,7 +21,7 @@ struct MonitorMenu: View {
       Button("今すぐ確認", action: model.refresh)
         .disabled(model.status == .reconnecting)
 
-      Button("Wi-Fi に再接続", action: model.reconnect)
+      Button("再接続", action: model.reconnect)
         .disabled(!model.canReconnect)
 
       if let host = model.portal?.host() {
@@ -46,7 +46,7 @@ struct MonitorMenu: View {
 
     Button("通信速度計測", action: openSpeedTest)
 
-    Button("Wi-Fi の DNS 設定") {
+    Button("DNS 設定") {
       openWindow(id: "dns-presets")
       NSApplication.shared.activate()
     }

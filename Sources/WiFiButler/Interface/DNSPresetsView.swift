@@ -6,7 +6,7 @@ struct DNSPresetsView: View {
 
   var body: some View {
     Form {
-      Section("Wi-Fi の DNS 設定") {
+      Section("DNS 設定") {
         LabeledContent("現在の設定", value: manager.currentConfiguration.title)
 
         Picker("適用する DNS", selection: $manager.selection) {
