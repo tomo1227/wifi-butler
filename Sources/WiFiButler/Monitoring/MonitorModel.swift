@@ -5,7 +5,7 @@ import Observation
 @MainActor
 @Observable
 final class MonitorModel {
-  private let wifi = WiFiMonitor()
+  private let wifi: any WiFiMonitoring
   private let connectivity = ConnectivityMonitor()
   private let controller = BrowserController()
   private let logger = EventLogger()
@@ -14,6 +14,7 @@ final class MonitorModel {
   private var reconnectPolicy = WiFiReconnectPolicy()
   private var portalAfterReconnect: (ssid: String, expires: ContinuousClock.Instant)?
   private var generation = 0
+  private var manuallyPaused = false
   private var sleeping = false
   private var opening = false
   private var openedPortal = false
@@ -21,7 +22,7 @@ final class MonitorModel {
   private var attempts = 0
 
   private(set) var isMonitoring = false
-  private(set) var status = MonitorStatus.paused
+  private(set) var status = MonitorStatus.disconnected
   private(set) var snapshot = WiFiSnapshot.disconnected
   private(set) var nextCheck: Date?
   private(set) var lastVerified: Date?
@@ -36,13 +37,19 @@ final class MonitorModel {
       && reconnectPolicy.manualTarget(for: snapshot) != nil && wifi.canReconnect
   }
 
-  init() {
+  init(wifi: any WiFiMonitoring = WiFiMonitor()) {
+    self.wifi = wifi
     activities = logger.recent()
     lastVerified = activities.first { $0.kind == .verified }?.date
-    wifi.start { [weak self] in self?.refreshAfterPathChange() }
+  }
+
+  func startObservingWiFi() {
+    wifi.start { [weak self] in self?.refreshAfterNetworkChange() }
+    refreshAfterNetworkChange()
   }
 
   func setMonitoring(_ enabled: Bool) {
+    manuallyPaused = !enabled
     isMonitoring = enabled
     if enabled { wifi.requestLocationPermission() }
     if !enabled {
@@ -64,7 +71,11 @@ final class MonitorModel {
     if value { cancelReconnect() }
     resetCandidate()
     openedPortal = false
-    refresh()
+    if value || isMonitoring {
+      refresh()
+    } else {
+      refreshAfterNetworkChange()
+    }
   }
 
   func refresh() {
@@ -73,7 +84,7 @@ final class MonitorModel {
     nextCheck = nil
     portal = nil
     guard isMonitoring else {
-      status = .paused
+      status = manuallyPaused ? .paused : .disconnected
       snapshot = .disconnected
       return
     }
@@ -132,9 +143,14 @@ final class MonitorModel {
     wifi.snapshot() == expected && wifi.hasWiFiRoute
   }
 
-  private func refreshAfterPathChange() {
-    guard isMonitoring, !sleeping, reconnecting == nil else { return }
-    if snapshot != wifi.snapshot() || (!wifi.hasWiFiRoute && status != .noWiFiRoute) {
+  private func refreshAfterNetworkChange() {
+    guard !manuallyPaused, !sleeping, reconnecting == nil else { return }
+    let current = wifi.snapshot()
+    guard isMonitoring else {
+      if current != .disconnected { setMonitoring(true) }
+      return
+    }
+    if snapshot != current || (!wifi.hasWiFiRoute && status != .noWiFiRoute) {
       resetCandidate()
       openedPortal = false
       refresh()
@@ -144,6 +160,7 @@ final class MonitorModel {
   }
 
   private func check(generation currentGeneration: Int) async {
+    guard !Task.isCancelled, generation == currentGeneration else { return }
     let current = wifi.snapshot()
     reconnectPolicy.observe(current)
     let networkChanged = current != snapshot

@@ -10,6 +10,7 @@ final class WorkspaceLifecycle: NSObject, NSApplicationDelegate {
       self, selector: #selector(sleep), name: NSWorkspace.willSleepNotification, object: nil)
     center.addObserver(
       self, selector: #selector(wake), name: NSWorkspace.didWakeNotification, object: nil)
+    model.startObservingWiFi()
   }
 
   @objc private func sleep() {

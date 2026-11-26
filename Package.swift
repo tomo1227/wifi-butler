@@ -9,5 +9,6 @@ let package = Package(
     .target(name: "ButlerCore"),
     .executableTarget(name: "WiFiButler", dependencies: ["ButlerCore"]),
     .testTarget(name: "ButlerCoreTests", dependencies: ["ButlerCore"]),
+    .testTarget(name: "WiFiButlerTests", dependencies: ["WiFiButler", "ButlerCore"]),
   ]
 )

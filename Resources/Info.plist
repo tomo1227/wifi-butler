@@ -21,7 +21,7 @@
     <key>LSUIElement</key>
     <true/>
     <key>NSLocationUsageDescription</key>
-    <string>監視を許可した Wi-Fi を識別するために、接続中の SSID を読み取ります。位置座標は取得しません。</string>
+    <string>監視する Wi-Fi を識別するために、接続中の SSID を読み取ります。位置座標は取得しません。</string>
     <key>NSAppTransportSecurity</key>
     <dict>
         <key>NSExceptionDomains</key>
