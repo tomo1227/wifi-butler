@@ -5,8 +5,6 @@ import Observation
 @MainActor
 @Observable
 final class MonitorModel {
-  static let target = "DOUTOR_FREE_Wi-Fi"
-
   private let wifi = WiFiMonitor()
   private let connectivity = ConnectivityMonitor()
   private let controller = BrowserController()
@@ -72,9 +70,11 @@ final class MonitorModel {
   }
 
   func openPortal(_ url: URL) async {
+    let current = snapshot
     guard !opening, status == .portal || status == .browserFailed, url == portal,
-      isMonitoring, !sleeping, isCurrentNetwork
+      isMonitoring, !sleeping
     else { return }
+    guard isCurrentNetwork(current) else { return refresh() }
     generation += 1
     checking?.cancel()
     nextCheck = nil
@@ -84,7 +84,7 @@ final class MonitorModel {
     status = .opening
     let app = await controller.open(url, in: browser)
     guard generation == currentGeneration else { return }
-    guard isCurrentNetwork else { return refresh() }
+    guard isCurrentNetwork(current) else { return refresh() }
     if app == nil {
       status = .browserFailed
       activities = logger.recent(adding: .browserFailed)
@@ -96,8 +96,8 @@ final class MonitorModel {
     schedule(after: app == nil ? 30 : 5, generation: currentGeneration)
   }
 
-  private var isCurrentNetwork: Bool {
-    wifi.snapshot().isAllowed(by: [Self.target]) && wifi.hasWiFiRoute
+  private func isCurrentNetwork(_ expected: WiFiSnapshot) -> Bool {
+    SupportedWiFi.matches(wifi.snapshot(), expected: expected) && wifi.hasWiFiRoute
   }
 
   private func refreshAfterPathChange() {
@@ -113,7 +113,8 @@ final class MonitorModel {
 
   private func check(generation currentGeneration: Int) async {
     let current = wifi.snapshot()
-    if current != snapshot {
+    let networkChanged = current != snapshot
+    if networkChanged {
       resetCandidate()
       openedPortal = false
     }
@@ -123,13 +124,13 @@ final class MonitorModel {
       schedule(after: 30, generation: currentGeneration)
       return
     }
-    if status != .portal && status != .browserFailed { status = .checking }
+    if networkChanged || (status != .portal && status != .browserFailed) { status = .checking }
     let result = await connectivity.check { [weak self] in
       guard let self else { return false }
-      return self.generation == currentGeneration && self.isCurrentNetwork
+      return self.generation == currentGeneration && self.isCurrentNetwork(current)
     }
     guard !Task.isCancelled, generation == currentGeneration else { return }
-    guard isCurrentNetwork else { return refresh() }
+    guard isCurrentNetwork(current) else { return refresh() }
     schedule(after: record(result), generation: currentGeneration)
   }
 
@@ -137,7 +138,7 @@ final class MonitorModel {
     switch current {
     case .disconnected: .disconnected
     case .unidentified: .unidentified
-    case .connected(let name) where name != Self.target: .excluded
+    case .connected where !current.isAllowed(by: SupportedWiFi.ssids): .excluded
     case .connected: wifi.hasWiFiRoute ? nil : .noWiFiRoute
     }
   }

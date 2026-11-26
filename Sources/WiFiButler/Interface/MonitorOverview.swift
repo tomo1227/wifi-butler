@@ -1,3 +1,4 @@
+import ButlerCore
 import SwiftUI
 
 struct MonitorOverview: View {
@@ -14,7 +15,6 @@ struct MonitorOverview: View {
           }
         }
         LabeledContent("通信状態", value: model.status.label)
-        LabeledContent("監視対象", value: MonitorModel.target)
         dateRow("最後の認証確認", date: model.lastVerified)
         dateRow("次回の確認予定", date: model.nextCheck)
         if model.status == .unidentified {
@@ -36,6 +36,14 @@ struct MonitorOverview: View {
             .disabled(model.status == .opening)
         } else {
           Text("認証 URL が表示されない場合は、macOS の Wi-Fi ログイン画面で手動認証してください。")
+        }
+      }
+
+      Section {
+        DisclosureGroup("監視対象の Wi-Fi") {
+          ForEach(SupportedWiFi.ssids.sorted(), id: \.self) { ssid in
+            Text(verbatim: ssid)
+          }
         }
       }
 

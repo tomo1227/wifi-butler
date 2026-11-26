@@ -6,11 +6,35 @@ final class CaptivePortalTests: XCTestCase {
   private let portal = URL(string: "https://example.test/terms")!
 
   func testWiFiAllowlistRequiresExactKnownSSID() {
-    let allowed: Set<String> = ["DOUTOR_FREE_Wi-Fi"]
-    XCTAssertTrue(WiFiSnapshot.connected("DOUTOR_FREE_Wi-Fi").isAllowed(by: allowed))
+    let allowed = SupportedWiFi.ssids
+    let expected = [
+      "00_MCD-FREE-WIFI", "309cafe_Wi-Fi", "DOUTOR_FREE_Wi-Fi", "FreeWiFi-NARITA",
+      "HANEDA-FREE-WIFI", "JR-Central_FREE", "JR-EAST_FREE_Wi-Fi", "Shinkansen_Free_Wi-Fi",
+      "at_STARBUCKS_Wi2", "tullys_Wi-Fi",
+    ]
+    for ssid in expected {
+      XCTAssertTrue(WiFiSnapshot.connected(ssid).isAllowed(by: allowed), ssid)
+      XCTAssertFalse(WiFiSnapshot.connected("\(ssid)-guest").isAllowed(by: allowed), ssid)
+    }
     XCTAssertFalse(WiFiSnapshot.connected("doutor_free_wi-fi").isAllowed(by: allowed))
     XCTAssertFalse(WiFiSnapshot.disconnected.isAllowed(by: allowed))
     XCTAssertFalse(WiFiSnapshot.unidentified.isAllowed(by: allowed))
+  }
+
+  func testNetworkMustStillMatchEvenWhenBothSSIDsAreSupported() {
+    let doutor = WiFiSnapshot.connected("DOUTOR_FREE_Wi-Fi")
+    let saintMarc = WiFiSnapshot.connected("309cafe_Wi-Fi")
+    let shinkansen = WiFiSnapshot.connected("Shinkansen_Free_Wi-Fi")
+    let other = WiFiSnapshot.connected("other")
+
+    XCTAssertTrue(SupportedWiFi.matches(doutor, expected: doutor))
+    XCTAssertTrue(SupportedWiFi.matches(saintMarc, expected: saintMarc))
+    XCTAssertTrue(SupportedWiFi.matches(shinkansen, expected: shinkansen))
+    XCTAssertFalse(SupportedWiFi.matches(saintMarc, expected: doutor))
+    XCTAssertFalse(SupportedWiFi.matches(doutor, expected: saintMarc))
+    XCTAssertFalse(SupportedWiFi.matches(shinkansen, expected: saintMarc))
+    XCTAssertFalse(SupportedWiFi.matches(other, expected: other))
+    XCTAssertFalse(SupportedWiFi.matches(.unidentified, expected: saintMarc))
   }
 
   func testOnlyExpectedHTTPSProvesConnectivity() {

@@ -1,13 +1,28 @@
 # WiFi Butler
 
-ドトールのフリー Wi-Fi (`DOUTOR_FREE_Wi-Fi`) を対象とする、macOS メニューバーアプリです。現バージョンは**手動認証を補助する PoC** です。通信障害と Captive Portal の候補を区別し、確認した URL を Dia または Safari で開けます。利用規約への同意や認証ボタンの操作はアプリから行いません。
+飲食店、列車、駅、空港のフリー Wi-Fi を対象とする、macOS メニューバーアプリです。現バージョンは**手動認証を補助する PoC** です。通信障害と Captive Portal の候補を区別し、確認した URL を Dia または Safari で開けます。利用規約への同意や認証ボタンの操作はアプリから行いません。
+
+| 監視対象 | SSID |
+| --- | --- |
+| ドトール | `DOUTOR_FREE_Wi-Fi` |
+| サンマルクカフェ | `309cafe_Wi-Fi` |
+| [スターバックス](https://starbucks.wi2.co.jp/sp/sma_index_jp.html?locale=jp) | `at_STARBUCKS_Wi2` |
+| [タリーズコーヒー](https://www.tullys.co.jp/wifi/) | `tullys_Wi-Fi` |
+| [マクドナルド](https://www.mcdonalds.co.jp/shop/mcdwifi/) | `00_MCD-FREE-WIFI` |
+| 東海道・山陽・九州新幹線の車内 | `Shinkansen_Free_Wi-Fi` |
+| [JR東日本の対象車両](https://jreastfaq.jreast.co.jp/faq/show/2968)・[一部の駅](https://www.gotokyo.org/en/plan/wifi-connectivity/wifi_hotspotguide.html) | `JR-EAST_FREE_Wi-Fi` |
+| [東海道新幹線の駅構内など](https://railway.jr-central.co.jp/wireless/free_wifi.html) | `JR-Central_FREE` |
+| [羽田空港](https://tokyo-haneda.com/service/facilities/wireless_lan.html) | `HANEDA-FREE-WIFI` |
+| [成田空港](https://www.narita-airport.jp/ja/service/internet/power-outlet/) | `FreeWiFi-NARITA` |
+
+提供場所や SSID は現地の案内で確認してください。表にない SSID は監視対象外です。各サービスでの実地認証は未検証です。
 
 ## ビルド・実行
 
 Swift 6.4 以降を含む Xcode と、macOS 15 以降が必要です。外部ライブラリは不要です。
 
 ```sh
-make test   # XCTest（実際の店舗 Wi-Fi やブラウザ操作に依存しません）
+make test   # XCTest（実際の Wi-Fi やブラウザ操作に依存しません）
 make build  # .build/WiFiButler.app を作成・署名
 make run    # アプリをビルドして起動
 make lint   # swift-format のルールを確認
@@ -17,7 +32,7 @@ make lint   # swift-format のルールを確認
 
 ## 使い方
 
-1. macOS で `DOUTOR_FREE_Wi-Fi` に接続します。
+1. macOS で上記の監視対象 Wi-Fi に接続します。
 2. メニューバーの蝶ネクタイのアイコンから **監視を開始** を選び、SSID の読み取りに必要な位置情報の利用を許可します。位置座標は取得しません。
 3. **状況・履歴を表示** で接続状態を確認します。認証ページ候補が表示されたらホスト名を確認し、Dia または Safari で開きます。利用規約に同意できる場合のみ、ブラウザ上で手動で操作します。
 4. 操作後、アプリは Apple の疎通確認ページへの HTTPS 通信を再確認します。URL が表示されない場合は、macOS の Wi-Fi ログイン画面を使ってください。
@@ -34,6 +49,7 @@ make lint   # swift-format のルールを確認
 | Captive Portal | `captive.apple.com` の既知の HTTPS 応答を疎通判定に使用します。HTTPS だけで判定できない場合のみ HTTP を試し、リダイレクトは自動追跡しません。異なるホストへの同じリダイレクト（または `511` と `Location`）が続いた場合のみ候補を表示します。候補は提供者の真正性を保証しません。別の応答形式のポータルや、一部の通信だけを許可するネットワークは誤判定・見逃しがあり得ます。 |
 | Dia と Safari | Dia は [1.7.0 の公開ノート](https://www.diabrowser.com/changelog/mac/1-7-0) でウィンドウ・タブの参照とフォーカスを案内しています。ローカルの Dia 1.58.2 と Safari 27.2 のスクリプト辞書に JavaScript コマンドはありましたが、実行権限や実ページの動作は未検証です。現行アプリは AppleScript や JavaScript を使わず、`NSWorkspace` で既存ブラウザセッションに URL を渡します。 |
 | Accessibility | 自動操作の候補実装は、アクセシビリティ権限、フォーカスされたウィンドウ、承認済みの HTTPS URL、一意かつ有効な `AXPress` 対象を要求します。実店舗の Dia/Safari における AX ツリーは未検証で、アプリからは起動しません。現行アプリの利用にアクセシビリティ権限は不要です。 |
-| ドトール | [公式案内](https://www.doutor.co.jp/dcs/service/dtr-wifi.html) では SSID と手動同意手順を確認できましたが、ポータルの固定 URL は確認できませんでした。実店舗でのポータル検出から認証成功までの動作は未検証です。事業者の規約やセッション制限は回避しません。 |
+| 対応店舗の情報 | ドトールは[公式案内](https://www.doutor.co.jp/dcs/service/dtr-wifi.html)、サンマルクカフェは[公式の店舗情報](https://www.saint-marc-hd.com/saintmarccafe/search/)と[SSID の利用報告](https://realnet-engineering.jp/mobile/saintmarccafe/)を参照しています。どちらも実店舗でのポータル検出から認証成功までの動作は未検証です。事業者の規約やセッション制限は回避しません。 |
+| 新幹線車内 Wi-Fi | [JR東海の SSID・利用案内](https://railway.jr-central.co.jp/wireless/shinkansen_free_wifi.html)と[JR西日本の提供区間案内](https://www.jr-odekake.net/railroad/service/shinkansen-wifi.html)を参照しています。メール登録や SNS 認証は手動です。実車内でのポータル検出から認証成功までの動作は未検証です。 |
 
-自動同意の事前承認設定、複数 SSID の設定、設定の永続化、ログイン時の自動起動、終了後のバックグラウンド監視、通知は未対応です。次の段階では、実店舗で正規ポータルの URL・AX 要素を確認し、承認を撤回できる設定を実装してから自動操作の有効化を検討します。
+自動同意の事前承認設定、監視対象 SSID のユーザー設定、設定の永続化、ログイン時の自動起動、終了後のバックグラウンド監視、通知は未対応です。次の段階では、実店舗で正規ポータルの URL・AX 要素を確認し、承認を撤回できる設定を実装してから自動操作の有効化を検討します。
