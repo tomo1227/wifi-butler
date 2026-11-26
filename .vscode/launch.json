@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:wifi-butler}",
+            "name": "Debug WiFiButler",
+            "target": "WiFiButler",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug WiFiButler"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:wifi-butler}",
+            "name": "Release WiFiButler",
+            "target": "WiFiButler",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release WiFiButler"
+        }
+    ]
+}

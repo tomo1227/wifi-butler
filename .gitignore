@@ -1,0 +1,21 @@
+.DS_Store
+*.log
+
+# Xcode
+xcuserdata/
+/DerivedData/
+.build/
+
+# Local dependencies, credentials, and generated files
+node_modules/
+.env
+.env.*
+.dev.vars
+.dev.vars.*
+.wrangler/
+apps/web/test-results/
+apps/web/playwright-report/
+
+
+# APM dependencies
+apm_modules/
