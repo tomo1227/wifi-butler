@@ -5,6 +5,53 @@ import XCTest
 
 final class MonitorModelTests: XCTestCase {
   @MainActor
+  func testReconnectFailureIsHiddenIfStillConnectedToSameSSID() async throws {
+    let wifi = TestWiFiMonitor(current: .connected("Home"), canReconnect: true)
+    let model = MonitorModel(wifi: wifi, reconnectWiFi: { _, _ in .failed })
+    model.startObservingWiFi()
+    try await waitForCheck(model)
+
+    model.reconnect()
+    XCTAssertEqual(model.status, .reconnecting)
+    try await waitForCheck(model)
+
+    XCTAssertEqual(model.snapshot, .connected("Home"))
+    XCTAssertFalse(model.reconnectFailed)
+  }
+
+  @MainActor
+  func testReconnectFailureWhileDisconnectedClearsWhenWiFiReturnsWithoutSSID() async throws {
+    let wifi = TestWiFiMonitor(current: .connected("Home"), canReconnect: true)
+    let model = MonitorModel(wifi: wifi, reconnectWiFi: { _, _ in .failed })
+    model.startObservingWiFi()
+    try await waitForCheck(model)
+
+    wifi.update(.disconnected)
+    try await waitForCheck(model)
+    XCTAssertEqual(model.status, .disconnected)
+    XCTAssertTrue(model.reconnectFailed)
+
+    wifi.update(.unidentified)
+    try await waitForCheck(model)
+    XCTAssertEqual(model.status, .unidentified)
+    XCTAssertFalse(model.reconnectFailed)
+
+    model.autoReconnect = false
+    wifi.update(.disconnected)
+    try await waitForCheck(model)
+    XCTAssertFalse(model.reconnectFailed)
+  }
+
+  @MainActor
+  private func waitForCheck(_ model: MonitorModel) async throws {
+    let deadline = ContinuousClock.now.advanced(by: .seconds(2))
+    while model.nextCheck == nil, ContinuousClock.now < deadline {
+      try await Task.sleep(for: .milliseconds(5))
+    }
+    _ = try XCTUnwrap(model.nextCheck, "Expected a completed connectivity check")
+  }
+
+  @MainActor
   func testStartsAtLaunchWhenAlreadyConnected() {
     let wifi = TestWiFiMonitor(current: .connected("Home"))
     let model = MonitorModel(wifi: wifi)

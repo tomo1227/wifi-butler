@@ -6,6 +6,7 @@ import Observation
 @Observable
 final class MonitorModel {
   private let wifi: any WiFiMonitoring
+  private let reconnectWiFi: @Sendable (String, Bool) async -> WiFiReconnector.Outcome
   private let connectivity = ConnectivityMonitor()
   private let controller = BrowserController()
   private let logger = EventLogger()
@@ -37,8 +38,13 @@ final class MonitorModel {
       && reconnectPolicy.manualTarget(for: snapshot) != nil && wifi.canReconnect
   }
 
-  init(wifi: any WiFiMonitoring = WiFiMonitor()) {
+  init(
+    wifi: any WiFiMonitoring = WiFiMonitor(),
+    reconnectWiFi: @escaping @Sendable (String, Bool) async -> WiFiReconnector.Outcome =
+      WiFiReconnector.reconnect(to:force:)
+  ) {
     self.wifi = wifi
+    self.reconnectWiFi = reconnectWiFi
     activities = logger.recent()
     lastVerified = activities.first { $0.kind == .verified }?.date
   }
@@ -163,13 +169,13 @@ final class MonitorModel {
     guard !Task.isCancelled, generation == currentGeneration else { return }
     let current = wifi.snapshot()
     reconnectPolicy.observe(current)
+    if current != .disconnected { reconnectFailed = false }
     let networkChanged = current != snapshot
     if networkChanged {
       resetCandidate()
       openedPortal = false
       if case .connected(let ssid) = current {
         if portalAfterReconnect?.ssid != ssid { portalAfterReconnect = nil }
-        reconnectFailed = false
       }
     }
     snapshot = current
@@ -215,8 +221,8 @@ final class MonitorModel {
     reconnectFailed = false
     reconnectPolicy.markAttempt(for: ssid)
     status = .reconnecting
-    reconnecting = Task { [weak self] in
-      let outcome = await WiFiReconnector.reconnect(to: ssid, force: force)
+    reconnecting = Task { [weak self, reconnectWiFi] in
+      let outcome = await reconnectWiFi(ssid, force)
       guard let self else { return }
       self.reconnecting = nil
       if !Task.isCancelled {
@@ -224,7 +230,7 @@ final class MonitorModel {
         case .joined:
           self.portalAfterReconnect = (ssid, ContinuousClock.now.advanced(by: .seconds(60)))
         case .failed:
-          self.reconnectFailed = true
+          self.reconnectFailed = self.wifi.snapshot() == .disconnected
         case .superseded:
           break
         }

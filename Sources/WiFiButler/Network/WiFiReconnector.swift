@@ -1,7 +1,10 @@
 import ButlerCore
 import CoreWLAN
+import OSLog
 
 enum WiFiReconnector {
+  private static let logger = Logger(subsystem: "dev.wifibutler.app", category: "network")
+
   enum Outcome {
     case joined, failed, superseded
   }
@@ -10,11 +13,15 @@ enum WiFiReconnector {
     let worker = Task.detached(priority: .userInitiated) {
       Self.associate(to: ssid, force: force)
     }
-    return await withTaskCancellationHandler {
+    let outcome = await withTaskCancellationHandler {
       await worker.value
     } onCancel: {
       worker.cancel()
     }
+    if case .failed = outcome, !Task.isCancelled {
+      logger.error("Wi-Fi reassociation failed")
+    }
+    return outcome
   }
 
   private static func associate(to ssid: String, force: Bool) -> Outcome {

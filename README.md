@@ -54,11 +54,13 @@ DNS の変更には macOS の認証が必要です。認証がキャンセルさ
 
 監視中に Wi-Fi 自体が切断された場合は、直前に接続していた SSID への自動再接続を一度試します。インターネットに届かないだけの場合、Wi-Fi がオフの場合、または別の Wi-Fi に接続している場合は自動ではつなぎ直しません。自動再接続は **状況・履歴** で無効にできます。再接続はパスワード不要のオープンネットワークが対象です。
 
+再接続に失敗し、Wi-Fi が未接続のままの場合は、macOS の Wi-Fi メニューから接続するよう案内します。Wi-Fi に接続すると案内は消えます。
+
 ## 技術調査と制約
 
 | 項目 | 採用方針・確認結果 |
 | --- | --- |
-| SSID・ネットワーク経路 | [CoreWLAN](https://developer.apple.com/documentation/corewlan) の `CWWiFiClient` で SSID を取得し、`NWPathMonitor` で Wi-Fi の経路を確認します。SSID が不明の場合は HTTP/HTTPS の疎通確認を行いません。`URLSession` はシステムの経路を使うため、VPN・プロキシなどの影響を受けます。 |
+| SSID・ネットワーク経路 | [CoreWLAN](https://developer.apple.com/documentation/corewlan) の `CWWiFiClient` で SSID を取得し、`NWPathMonitor` で Wi-Fi の経路を確認します。`URLSession` はシステムの経路を使うため、VPN・プロキシなどの影響を受けます。 |
 | 再接続 | CoreWLAN で SSID のオープンネットワークを探して接続します。再接続先になる最後の SSID は監視中だけメモリに保持します。実環境のアクセスポイントでの動作は未検証です。 |
 | Captive Portal | `captive.apple.com` の既知の HTTPS 応答を疎通判定に使用します。HTTPS だけで判定できない場合のみ HTTP を試し、リダイレクトは自動追跡しません。異なるホストへの同じリダイレクト（または `511` と `Location`）が続いた場合のみ候補を表示します。候補は提供者の真正性を保証しません。別の応答形式のポータルや、一部の通信だけを許可するネットワークは誤判定・見逃しがあり得ます。 |
 | ブラウザ | AppleScript や JavaScript は使わず、`NSWorkspace` で選択したブラウザに URL を渡します。起動済みなら既存のインスタンスを使います。 |

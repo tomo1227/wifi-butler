@@ -4,14 +4,15 @@ import ButlerCore
 
 @MainActor
 final class TestWiFiMonitor: WiFiMonitoring {
-  let canReconnect = false
+  let canReconnect: Bool
   let hasWiFiRoute = false
   private var current: WiFiSnapshot
   private var onChange: (@MainActor @Sendable () -> Void)?
   private(set) var permissionRequests = 0
 
-  init(current: WiFiSnapshot) {
+  init(current: WiFiSnapshot, canReconnect: Bool = false) {
     self.current = current
+    self.canReconnect = canReconnect
   }
 
   func start(onChange: @escaping @MainActor @Sendable () -> Void) {
