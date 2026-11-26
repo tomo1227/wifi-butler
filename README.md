@@ -42,7 +42,13 @@ make lint   # swift-format のルールを確認
 
 ブラウザは Dia、Safari、Google Chrome、Firefox、Microsoft Edge、Brave、Arc、Opera、Vivaldi から選べます。ほかのブラウザも、macOS でデフォルトの Web ブラウザに設定して **「macOS のデフォルト」** を選べば使えます。未インストールのブラウザを指定して開けなかった場合は、別のブラウザを選んで再試行してください。
 
-メニューの **Wi-Fi の DNS プリセットを表示** では、デフォルト（自動）、Cloudflare DNS、Google Public DNS の IPv4・IPv6 設定を確認できます。参照専用で、プリセットを選んでも macOS の DNS 設定は変わりません。
+メニューの **Wi-Fi の DNS 設定** から、デフォルト（自動）、Cloudflare DNS、Google Public DNS を選択して適用できます。選択しただけでは設定は変更されず、**適用** を押したときに IPv4・IPv6 の DNS サーバーをまとめて変更します。
+
+DNS 設定は現在の Wi-Fi サービス全体に適用されます。SSID ごとの設定ではありません。Wi-Fi サービスを一意に特定できない場合は設定を変更しません。
+
+デフォルト（自動）を適用すると、手動指定の DNS サーバーだけを削除します。検索ドメインなど、その他の DNS 設定は保持します。既知のプリセットと一致しない手動 DNS 設定は「カスタム」と表示します。
+
+DNS の変更には macOS の認証が必要です。認証がキャンセルされた場合や、設定の保存・反映に失敗した場合は成功として扱いません。監視や Wi-Fi の再接続に連動した DNS の自動切り替えは行いません。
 
 監視は初期状態で停止しています。監視中は通常 30 秒おきに確認し、スリープ中は停止します。履歴はローカルに日時とイベント種類だけを最大 7 日間・300 件保存します。認証 URL、SSID、認証情報、Cookie は履歴に保存しません。
 
@@ -59,5 +65,6 @@ make lint   # swift-format のルールを確認
 | Accessibility | 自動操作の候補実装は、アクセシビリティ権限、フォーカスされたウィンドウ、承認済みの HTTPS URL、一意かつ有効な `AXPress` 対象を要求します。実店舗の Dia/Safari における AX ツリーは未検証で、アプリからは起動しません。現行アプリの利用にアクセシビリティ権限は不要です。 |
 | 対応店舗の情報 | ドトールは[公式案内](https://www.doutor.co.jp/dcs/service/dtr-wifi.html)、サンマルクカフェは[公式の店舗情報](https://www.saint-marc-hd.com/saintmarccafe/search/)と[SSID の利用報告](https://realnet-engineering.jp/mobile/saintmarccafe/)を参照しています。どちらも実店舗でのポータル検出から認証成功までの動作は未検証です。事業者の規約やセッション制限は回避しません。 |
 | 新幹線車内 Wi-Fi | [JR東海の SSID・利用案内](https://railway.jr-central.co.jp/wireless/shinkansen_free_wifi.html)と[JR西日本の提供区間案内](https://www.jr-odekake.net/railroad/service/shinkansen-wifi.html)を参照しています。メール登録や SNS 認証は手動です。実車内でのポータル検出から認証成功までの動作は未検証です。 |
+| DNS 設定 | `SystemConfiguration` の公開 API で現在のネットワークセットから Wi-Fi サービスを特定し、DNS プロトコル設定を変更します。`CoreWLAN` のアクティブな Wi-Fi インターフェース名と照合し、一意に特定できない場合は変更しません。認証には macOS 標準の Authorization Services を使用します。DNS サーバー以外の設定は保持し、監視・再接続時の自動変更は行いません。 |
 
 自動同意の事前承認設定、監視対象 SSID のユーザー設定、設定の永続化、ログイン時の自動起動、終了後のバックグラウンド監視、通知は未対応です。次の段階では、実店舗で正規ポータルの URL・AX 要素を確認し、承認を撤回できる設定を実装してから自動操作の有効化を検討します。

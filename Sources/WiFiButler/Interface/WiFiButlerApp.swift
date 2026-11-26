@@ -22,10 +22,10 @@ struct WiFiButlerApp: App {
     .defaultSize(width: 490, height: 530)
     .defaultLaunchBehavior(.suppressed)
 
-    Window("Wi-Fi の DNS プリセット", id: "dns-presets") {
+    Window("Wi-Fi の DNS 設定", id: "dns-presets") {
       DNSPresetsView()
     }
-    .defaultSize(width: 480, height: 280)
+    .defaultSize(width: 500, height: 360)
     .defaultLaunchBehavior(.suppressed)
   }
 }
