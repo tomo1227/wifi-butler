@@ -7,7 +7,7 @@ import Observation
 final class MonitorModel {
   private let wifi: any WiFiMonitoring
   private let reconnectWiFi: @Sendable (String, Bool) async -> WiFiReconnector.Outcome
-  private let connectivity = ConnectivityMonitor()
+  private let checkConnectivity: (@MainActor @Sendable () -> Bool) async -> Connectivity
   private let controller = BrowserController()
   private let logger = EventLogger()
   private var checking: Task<Void, Never>?
@@ -41,10 +41,13 @@ final class MonitorModel {
   init(
     wifi: any WiFiMonitoring = WiFiMonitor(),
     reconnectWiFi: @escaping @Sendable (String, Bool) async -> WiFiReconnector.Outcome =
-      WiFiReconnector.reconnect(to:force:)
+      WiFiReconnector.reconnect(to:force:),
+    checkConnectivity: @escaping (@MainActor @Sendable () -> Bool) async -> Connectivity =
+      ConnectivityMonitor().check
   ) {
     self.wifi = wifi
     self.reconnectWiFi = reconnectWiFi
+    self.checkConnectivity = checkConnectivity
     activities = logger.recent()
     lastVerified = activities.first { $0.kind == .verified }?.date
   }
@@ -74,7 +77,10 @@ final class MonitorModel {
 
   func setSleeping(_ value: Bool) {
     sleeping = value
-    if value { cancelReconnect() }
+    if value {
+      cancelReconnect()
+      reconnectPolicy.resetConnectivityFailures()
+    }
     resetCandidate()
     openedPortal = false
     if value || isMonitoring {
@@ -157,6 +163,7 @@ final class MonitorModel {
       return
     }
     if snapshot != current || (!wifi.hasWiFiRoute && status != .noWiFiRoute) {
+      reconnectPolicy.resetConnectivityFailures()
       resetCandidate()
       openedPortal = false
       refresh()
@@ -186,17 +193,25 @@ final class MonitorModel {
       return
     }
     if let blocked = blockedStatus(current) {
+      reconnectPolicy.resetConnectivityFailures()
       status = blocked
       schedule(after: 30, generation: currentGeneration)
       return
     }
     if networkChanged || (status != .portal && status != .browserFailed) { status = .checking }
-    let result = await connectivity.check { [weak self] in
+    let result = await checkConnectivity { [weak self] in
       guard let self else { return false }
       return self.generation == currentGeneration && self.isCurrentNetwork(current)
     }
     guard !Task.isCancelled, generation == currentGeneration else { return }
     guard isCurrentNetwork(current) else { return refresh() }
+    reconnectPolicy.observeConnectivity(result)
+    if autoReconnect, !opening, !openedPortal, wifi.canReconnect, wifi.isOnOpenNetwork,
+      let ssid = reconnectPolicy.takeRecoveryTarget(for: current)
+    {
+      startReconnect(to: ssid, force: true)
+      return
+    }
     let delay = record(result)
     if let pending = portalAfterReconnect {
       if ContinuousClock.now >= pending.expires || result == .online {

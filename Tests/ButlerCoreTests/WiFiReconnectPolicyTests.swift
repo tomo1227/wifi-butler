@@ -1,4 +1,5 @@
 import ButlerCore
+import Foundation
 import XCTest
 
 final class WiFiReconnectPolicyTests: XCTestCase {
@@ -41,5 +42,46 @@ final class WiFiReconnectPolicyTests: XCTestCase {
     policy.observe(.connected("Home"))
     XCTAssertEqual(policy.manualTarget(for: .disconnected), "Home")
     XCTAssertEqual(policy.takeAutomaticTarget(for: .disconnected), "Home")
+  }
+
+  func testConnectedRecoveryRunsOnceUntilInternetReturns() throws {
+    var policy = WiFiReconnectPolicy()
+    let current = WiFiSnapshot.connected(ssid)
+    let portal = try XCTUnwrap(URL(string: "http://login.example.com"))
+    policy.observe(current)
+
+    policy.observeConnectivity(.portal(portal))
+    XCTAssertNil(policy.takeRecoveryTarget(for: current))
+    policy.observe(current)
+    policy.observeConnectivity(.portal(portal))
+    XCTAssertEqual(policy.takeRecoveryTarget(for: current), ssid)
+    XCTAssertNil(policy.takeAutomaticTarget(for: .disconnected))
+
+    policy.observe(current)
+    policy.observeConnectivity(.unavailable)
+    policy.observeConnectivity(.unavailable)
+    XCTAssertNil(policy.takeRecoveryTarget(for: current))
+
+    policy.observeConnectivity(.online)
+    policy.observeConnectivity(.unavailable)
+    XCTAssertNil(policy.takeRecoveryTarget(for: current))
+    policy.observeConnectivity(.unavailable)
+    XCTAssertEqual(policy.takeRecoveryTarget(for: current), ssid)
+  }
+
+  func testConnectedRecoveryRequiresConsecutiveFailuresOnSameSSID() {
+    var policy = WiFiReconnectPolicy()
+    policy.observe(.connected(ssid))
+    policy.observeConnectivity(.unavailable)
+
+    let current = WiFiSnapshot.connected("OtherFreeWiFi")
+    policy.observe(current)
+    policy.observeConnectivity(.unavailable)
+    XCTAssertNil(policy.takeRecoveryTarget(for: current))
+    policy.observeConnectivity(.online)
+    policy.observeConnectivity(.unavailable)
+    XCTAssertNil(policy.takeRecoveryTarget(for: current))
+    policy.observeConnectivity(.unexpectedResponse)
+    XCTAssertEqual(policy.takeRecoveryTarget(for: current), "OtherFreeWiFi")
   }
 }

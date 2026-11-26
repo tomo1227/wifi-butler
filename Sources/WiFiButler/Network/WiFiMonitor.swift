@@ -54,6 +54,10 @@ final class WiFiMonitor: NSObject, WiFiMonitoring, CWEventDelegate, CLLocationMa
     location.authorizationStatus == .authorizedAlways && client.interface()?.powerOn() == true
   }
 
+  var isOnOpenNetwork: Bool {
+    client.interface()?.security() == CWSecurity.none
+  }
+
   func snapshot() -> WiFiSnapshot {
     let wifi = client.interface()
     guard wifi?.powerOn() == true else { return .disconnected }
