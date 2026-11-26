@@ -44,6 +44,8 @@ struct MonitorMenu: View {
       NSApplication.shared.activate()
     }
 
+    Button("通信速度計測", action: openSpeedTest)
+
     Button("Wi-Fi の DNS 設定") {
       openWindow(id: "dns-presets")
       NSApplication.shared.activate()
@@ -55,5 +57,10 @@ struct MonitorMenu: View {
       NSApplication.shared.terminate(nil)
     }
     .keyboardShortcut("q")
+  }
+
+  private func openSpeedTest() {
+    openWindow(id: "speed-test")
+    NSApplication.shared.activate()
   }
 }
