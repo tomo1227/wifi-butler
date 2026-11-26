@@ -8,9 +8,11 @@ struct WiFiButlerApp: App {
     MenuBarExtra {
       MonitorMenu(model: lifecycle.model)
     } label: {
-      Label(
-        "WiFi Butler: \(lifecycle.model.status.label)", systemImage: lifecycle.model.status.icon
-      )
+      Label {
+        Text("WiFi Butler: \(lifecycle.model.status.label)")
+      } icon: {
+        Image(nsImage: ButlerMenuBarIcon.image(for: lifecycle.model.status))
+      }
       .labelStyle(.iconOnly)
     }
 

@@ -19,12 +19,4 @@ enum MonitorStatus: Equatable {
     case .sleeping: "スリープ中"
     }
   }
-
-  var icon: String {
-    switch self {
-    case .online: "wifi"
-    case .portal, .unexpectedResponse, .browserFailed: "wifi.exclamationmark"
-    default: "wifi.slash"
-    }
-  }
 }
