@@ -17,31 +17,10 @@ enum ButlerMenuBarIcon {
   }
 
   private func makeImage() -> NSImage {
-    let image = NSImage(size: NSSize(width: 22, height: 18), flipped: true) { _ in
+    let image = NSImage(size: NSSize(width: 26, height: 18), flipped: true) { _ in
       NSColor.black.setFill()
       NSColor.black.setStroke()
-
-      let bowTie = NSBezierPath()
-      for side in [CGFloat(-1), 1] {
-        bowTie.move(to: NSPoint(x: 8 + side * 2.5, y: 8))
-        bowTie.line(to: NSPoint(x: 8 + side * 5.5, y: 5))
-        bowTie.curve(
-          to: NSPoint(x: 8 + side * 7, y: 5.75),
-          controlPoint1: NSPoint(x: 8 + side * 6.25, y: 4.25),
-          controlPoint2: NSPoint(x: 8 + side * 7, y: 4.75)
-        )
-        bowTie.line(to: NSPoint(x: 8 + side * 7, y: 12.25))
-        bowTie.curve(
-          to: NSPoint(x: 8 + side * 5.5, y: 13),
-          controlPoint1: NSPoint(x: 8 + side * 7, y: 13.25),
-          controlPoint2: NSPoint(x: 8 + side * 6.25, y: 13.75)
-        )
-        bowTie.line(to: NSPoint(x: 8 + side * 2.5, y: 10))
-        bowTie.close()
-      }
-      bowTie.fill()
-      NSBezierPath(roundedRect: NSRect(x: 6.5, y: 7, width: 3, height: 4), xRadius: 1, yRadius: 1)
-        .fill()
+      Self.drawWiFi()
 
       let mark = NSBezierPath()
       mark.lineWidth = 1.5
@@ -49,21 +28,51 @@ enum ButlerMenuBarIcon {
       mark.lineJoinStyle = .round
       switch self {
       case .connected:
-        mark.move(to: NSPoint(x: 17, y: 9.25))
-        mark.line(to: NSPoint(x: 18.25, y: 10.5))
-        mark.line(to: NSPoint(x: 20.5, y: 7.5))
+        NSColor.labelColor.setFill()
+        NSRect(x: 0, y: 0, width: 16, height: 18).fill(using: .sourceAtop)
+
+        NSColor(srgbRed: 0.07, green: 0.49, blue: 0.25, alpha: 1).setFill()
+        NSBezierPath(ovalIn: NSRect(x: 16.5, y: 4.5, width: 9, height: 9)).fill()
+        NSColor.white.setStroke()
+        mark.move(to: NSPoint(x: 18.75, y: 9.25))
+        mark.line(to: NSPoint(x: 20.25, y: 10.75))
+        mark.line(to: NSPoint(x: 23.25, y: 7.5))
       case .attention:
-        mark.move(to: NSPoint(x: 18.75, y: 6.25))
-        mark.line(to: NSPoint(x: 18.75, y: 9.25))
-        NSBezierPath(ovalIn: NSRect(x: 18, y: 10.75, width: 1.5, height: 1.5)).fill()
+        mark.move(to: NSPoint(x: 21, y: 6.25))
+        mark.line(to: NSPoint(x: 21, y: 9.25))
+        NSBezierPath(ovalIn: NSRect(x: 20.25, y: 10.75, width: 1.5, height: 1.5)).fill()
       case .inactive:
-        mark.move(to: NSPoint(x: 17.25, y: 9))
-        mark.line(to: NSPoint(x: 20.25, y: 9))
+        mark.move(to: NSPoint(x: 19.5, y: 9))
+        mark.line(to: NSPoint(x: 22.5, y: 9))
       }
       mark.stroke()
       return true
     }
-    image.isTemplate = true
+    image.isTemplate = self != .connected
     return image
+  }
+
+  private static func drawWiFi() {
+    let waves = NSBezierPath()
+    waves.move(to: NSPoint(x: 1.5, y: 5.75))
+    waves.curve(
+      to: NSPoint(x: 14.5, y: 5.75),
+      controlPoint1: NSPoint(x: 5, y: 2.5), controlPoint2: NSPoint(x: 11, y: 2.5))
+    waves.move(to: NSPoint(x: 4, y: 8))
+    waves.curve(
+      to: NSPoint(x: 12, y: 8),
+      controlPoint1: NSPoint(x: 6, y: 6), controlPoint2: NSPoint(x: 10, y: 6))
+    waves.lineWidth = 1.5
+    waves.lineCapStyle = .round
+    waves.stroke()
+
+    let router = NSBezierPath(
+      roundedRect: NSRect(x: 3.25, y: 10.5, width: 9.5, height: 4.5),
+      xRadius: 1.5, yRadius: 1.5)
+    router.lineWidth = 1.5
+    router.stroke()
+    for x in [5.3, 9.3] {
+      NSBezierPath(ovalIn: NSRect(x: x, y: 12.05, width: 1.4, height: 1.4)).fill()
+    }
   }
 }
